@@ -57,6 +57,16 @@ async def addChannel(channel_id):
         f.write(json.dumps(config, indent=4))
         f.close()
 
+async def removeChannel(channel_id):
+    channels.remove(channel_id)
+    config = {
+        "token": bot_token,
+        "channels": channels
+    }
+    with open("config.json", "w") as f:
+        f.write(json.dumps(config, indent=4))
+        f.close()
+
 @bot.command()
 async def subscribe(ctx, channel: int):
     try:
@@ -66,13 +76,20 @@ async def subscribe(ctx, channel: int):
         await ctx.send(f"Usage: `+subscribe <channel id>`")
         print(e)
 
+@bot.command()
+async def unsubscribe(ctx, channel: int):
+    try:
+        await addChannel(channel)
+        await ctx.send(f"Successfully unsubscribed to channel <#{channel}>.")
+    except Exception as e:
+        await ctx.send(f"Usage: `+unsubscribe <channel id>`")
+        print(e)
+
 # The actual checker
 @tasks.loop(seconds=0.1)
 async def checkloop():
     global owd_bans, ostaff_bans, session
-    resp = session.get(
-        "https://api.plancke.io/hypixel/v1/punishmentStats"
-    )
+    resp = session.get("https://api.plancke.io/hypixel/v1/punishmentStats")
     # print(resp.text)
     wd_bans = resp.json().get("record").get("watchdog_total")
     staff_bans = resp.json().get("record").get("staff_total")
