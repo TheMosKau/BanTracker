@@ -13,27 +13,12 @@ bot = commands.Bot(command_prefix="nya~", intents=discord.Intents.default())
 with open("config.json") as conf:
     config = json.load(conf)
     channel_id = config["Channel"]
-    api_keys = config["API-Keys"]
     bot_token = config["Token"]
-
-# API Key checks
-for key in api_keys:
-    key_check = reqs.get(
-        "https://api.hypixel.net/punishmentstats", headers={"API-Key": key}
-    ).json()
-    if "cause" in key_check:
-        print(f"{Fore.YELLOW}{key} is an invalid API Key! It is no longer being used.{Fore.RESET}")
-        api_keys.remove(key)
-
-if not api_keys:
-    print(f"{Fore.RED}No usable API Keys were found. The bot will not attempt to run without API Keys.{Fore.RESET}")
-    exit()
 
 global owd_bans, ostaff_bans, update_delay
 owd_bans = None
 ostaff_bans = None
 update_delay = (1 / len(api_keys)) * 0.5
-
 
 #Startup
 @bot.event
@@ -52,8 +37,8 @@ async def checkloop():
     for key in api_keys:
         global owd_bans, ostaff_bans
         curr_stats = reqs.get(
-            "https://api.hypixel.net/punishmentstats", headers={"API-Key": key}
-        ).json()
+            "https://api.plancke.io/hypixel/v1/punishmentStats"
+        ).json().get("record")
         wd_bans = curr_stats["watchdog_total"]
         staff_bans = curr_stats["staff_total"]
         if owd_bans != None and ostaff_bans != None:
