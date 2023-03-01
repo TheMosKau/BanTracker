@@ -7,12 +7,8 @@ Open config.json and insert your API Key(s), bot token, and the channel ID of th
 Example:
 ``` json
 {
-    "API-Keys": [
-        "API-KEY1",
-        "API-KEY2"
-    ],
-    "Token": "BOT-TOKEN",
-    "Channel": 1234567890
+    "token": "BOT-TOKEN",
+    "channel": 1234567890
 }
 ```
 
