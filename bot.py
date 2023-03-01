@@ -7,11 +7,15 @@ import discord, time
 from discord.ext import tasks
 from discord.ext import commands
 
-bot = commands.Bot(command_prefix="nya~", intents=discord.Intents.default())
+intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
+
+bot = commands.Bot(command_prefix="+", intents=intents)
 
 with open("config.json") as conf:
     config = json.load(conf)
-    channel_id = config["channel"]
+    channels = config["channels"]
     bot_token = config["token"]
 
 global owd_bans, ostaff_bans
@@ -31,11 +35,36 @@ session.headers.update({
 #Startup
 @bot.event
 async def on_ready():
-    global channel
-    channel = bot.get_channel(channel_id)
-    print(f"Logging channel set to {channel.name}")
     checkloop.start()
     print(f"{Fore.LIGHTGREEN_EX}Checker has started!{Fore.RESET}")
+
+async def send(embed):
+    for channel_id in channels:
+        try:
+            channel = bot.get_channel(channel_id)
+            await channel.send(embed=embed)
+        except Exception as e:
+            print(e)
+            continue
+
+async def addChannel(channel_id):
+    channels.append(channel_id)
+    config = {
+        "token": bot_token,
+        "channels": channels
+    }
+    with open("config.json", "w") as f:
+        f.write(json.dumps(config, indent=4))
+        f.close()
+
+@bot.command()
+async def subscribe(ctx, channel: int):
+    try:
+        await addChannel(channel)
+        await ctx.send(f"Successfully subscribed to channel <#{channel}>!")
+    except Exception as e:
+        await ctx.send(f"Usage: `+subscribe <channel id>`")
+        print(e)
 
 # The actual checker
 @tasks.loop(seconds=0.1)
@@ -56,14 +85,14 @@ async def checkloop():
                 color=discord.Color.from_rgb(247, 57, 24),
                 description=f"<t:{math.floor(time.time())}:R>",
             ).set_author(name=f"Watchdog banned {wban_dif} player(s)!")
-            await channel.send(embed=embed)
+            await send(embed=embed)
 
         if sban_dif > 0:
             embed = discord.Embed(
                 color=discord.Color.from_rgb(247, 229, 24),
                 description=f"<t:{math.floor(time.time())}:R>",
             ).set_author(name=f"Staff banned {sban_dif} player(s)!")
-            await channel.send(embed=embed)
+            await send(embed=embed)
 
     owd_bans = wd_bans
     ostaff_bans = staff_bans
