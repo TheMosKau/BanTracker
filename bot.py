@@ -2,9 +2,6 @@ import math
 import time
 import json
 import os
-os.system("python3 -m pip install requests")
-os.system("python3 -m pip install colorama")
-os.system("python3 -m pip install discord.py")
 import requests
 from colorama import Fore
 import discord, time
